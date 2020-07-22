@@ -5,6 +5,7 @@ import functions as f
 import pyttsx3
 import random
 from multiprocessing import Process
+import covid_tracker as covid
 
 r = sr.Recognizer()
 r.pause_threshold = 1
@@ -40,7 +41,7 @@ if __name__ == "__main__":
 		text = listen()
 		if 'wiki' in text or 'vicky' in text:
 			words = text.split()
-			if 'open' in words or 'show' in words:
+			if 'open' in words:
 				word = words[1]
 				if 'text' in words:
 					f.application('text')
@@ -109,7 +110,10 @@ if __name__ == "__main__":
 
 			elif 'download' in words:
 				f.download_youtube_vedio(vedio_url)
-
+			
+			elif 'covid-19' in words or 'covid' in words:
+				covid.display_data(" ".join(words))
+			
 			elif 'rest' in text or 'sleep' in text:
 				break
 			response()

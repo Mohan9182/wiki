@@ -5,7 +5,6 @@ import time
 import subprocess
 import requests
 from selenium import webdriver
-from selenium.webdriver.support.ui import  WebDriverWait
 import pyautogui as pg
 import shutil
 import youtube_dl
@@ -13,7 +12,7 @@ from bs4 import BeautifulSoup
 import requests
 import wikipedia
 
-firefox_driver = "C:/Users/gurra/OneDrive/Documents/geckodriver"
+firefox_driver = "C:/Users/gurra/OneDrive/Documents/Drivers/geckodriver"
 
 def google_search(data):
 	st="https://www.google.com/search?q="+"+".join(data)
@@ -77,18 +76,21 @@ def weather(city='nellore'):
 
 def facebook_log():
 	driver = webdriver.Firefox(executable_path = firefox_driver)
-	driver.get('https://www.facebook.com/') 
-	driver.find_element_by_id('email').send_keys('9640505949') 
+	driver.get('https://www.facebook.com/')
+	email = driver.find_element_by_id('email')
+	driver.execute_script("arguments[0].type = 'password';", email) 
+	email.send_keys('9640505949') 
 	driver.find_element_by_id('pass').send_keys('9010Amma') 
 	driver.find_element_by_id('u_0_b').click() 
 	print("Loged in Succesfully")
-	return 0
 
 def twitter_log():
 	driver = webdriver.Firefox(executable_path = firefox_driver)
 	driver.get('https://twitter.com/login')
 	driver.implicitly_wait(5)
-	driver.find_element_by_name('session[username_or_email]').send_keys('9182864266')
+	email = driver.find_element_by_name('session[username_or_email]')
+	driver.execute_script("arguments[0].type = 'password';", email) 
+	email.send_keys('9182864266')
 	driver.find_element_by_name('session[password]').send_keys('9010Amma')
 	driver.implicitly_wait(5)
 	driver.find_element_by_xpath("//span[contains(@class,'css-901oao css-16my406 css-bfa6kz r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0')]").click()
