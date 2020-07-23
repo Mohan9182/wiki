@@ -33,17 +33,6 @@ layout1 = dict(
   yaxis4=dict(axis, **dict(domain=[0.0, 0.2], anchor='x4'))
 )
 
-district = pd.read_csv('https://api.covid19india.org/csv/latest/district_wise.csv',index_col='SlNo',skiprows=[1])
-state = pd.read_csv("https://api.covid19india.org/csv/latest/state_wise.csv",skiprows=[1])[['State','Confirmed','Recovered','Deaths','Active']]
-daily = pd.read_csv('https://api.covid19india.org/csv/latest/state_wise_daily.csv')
-district.drop(district.loc[district['State'] == 'State Unassigned'].index,inplace=True)
-for i,x in enumerate(district['District']):
-	if x == 'Unknown': district['District'].iloc[i] = district['State'].iloc[i]
-daily['Date'] = daily['Date'].apply(lambda x: pd.to_datetime(x))
-state_names={}
-for x in district['State'].unique():
-  state_names[x.lower()]=district['State_Code'].loc[district['State']==x].values[0]
-
 def display_data(sentence):
   global district
   global state
@@ -75,12 +64,25 @@ def display_data(sentence):
   else:
     district_values = district[['District','Confirmed','Active','Recovered','Deceased']].loc[district['State_Code']==col]
     district_values = district_values.sort_values(by=['Confirmed'],ascending=False)
+    district_values = district_values[:-1]
     table_trace1 = pg.Table(header=dict(values=['Districts', 'Confirmed','Active','Deceased','Recovered']),
                  cells=dict(values=[district_values['District'], district_values['Confirmed'],district_values['Active'], district_values['Deceased'], district_values['Recovered']]),domain=dict(x=[0, 0.5],y=[0, 1.0]))
-  trace1 = pg.Bar(x=dates,y=confirmed,name='Confirmed',marker={'color':'#FD073A'},xaxis='x1',yaxis='y1',textposition='auto',text=confirmed,texttemplate='%{text:.2s}',textangle=90)
-  trace2 = pg.Bar(x=dates,y=active,name='Active',marker={'color':'#0080FF'},xaxis='x2',yaxis='y2',textposition='auto',text=active,texttemplate='%{text:.2s}',textangle=90)
-  trace3 = pg.Bar(x=dates,y=recovered,name='Recovered',marker={'color':'#3ADF00'},xaxis='x3',yaxis='y3',textposition='auto',text=recovered,texttemplate='%{text:.2s}',textangle=90)
-  trace4 = pg.Bar(x=dates,y=deaths,name='Deceased',xaxis='x4',yaxis='y4',textposition='auto',text=deaths,texttemplate='%{text:.2s}',textangle=90,marker={'color':'#FF8000'})
+  trace1 = pg.Scatter(x=dates,y=confirmed,name='Confirmed',marker={'color':'#FD073A'},xaxis='x1',yaxis='y1',text=confirmed,texttemplate='%{text:.2s}',fillcolor='#F7819F',fill='tozeroy')
+  trace2 = pg.Scatter(x=dates,y=active,name='Active',marker={'color':'#0080FF'},xaxis='x2',yaxis='y2',text=active,texttemplate='%{text:.2s}',fillcolor='#819FF7',fill='tozeroy')
+  trace3 = pg.Scatter(x=dates,y=recovered,name='Recovered',marker={'color':'#3ADF00'},xaxis='x3',yaxis='y3',text=recovered,texttemplate='%{text:.2s}',fillcolor='#9FF781',fill='tozeroy')
+  trace4 = pg.Scatter(x=dates,y=deaths,name='Deceased',xaxis='x4',yaxis='y4',text=deaths,texttemplate='%{text:.2s}',marker={'color':'#FF8000'},fillcolor='#F7BE81',fill='tozeroy')
   print("Data visualization complete")
   fig1 = dict(data=[table_trace1, trace1, trace2, trace3, trace4], layout=layout1)
   py.plot(fig1)
+
+if __name__ == "__main__":
+  district = pd.read_csv('https://api.covid19india.org/csv/latest/district_wise.csv',index_col='SlNo',skiprows=[1])
+  state = pd.read_csv("https://api.covid19india.org/csv/latest/state_wise.csv",skiprows=[1])[['State','Confirmed','Recovered','Deaths','Active']]
+  daily = pd.read_csv('https://api.covid19india.org/csv/latest/state_wise_daily.csv')
+  district.drop(district.loc[district['State'] == 'State Unassigned'].index,inplace=True)
+  for i,x in enumerate(district['District']):
+	  if x == 'Unknown': district['District'].iloc[i] = district['State'].iloc[i]
+  daily['Date'] = daily['Date'].apply(lambda x: pd.to_datetime(x))
+  state_names={}
+  for x in district['State'].unique():
+    state_names[x.lower()]=district['State_Code'].loc[district['State']==x].values[0]
