@@ -11,8 +11,11 @@ import youtube_dl
 from bs4 import BeautifulSoup
 import requests
 import wikipedia
+import wiki
 
 firefox_driver = "C:/Users/gurra/OneDrive/Documents/Drivers/geckodriver"
+key = ''
+cipher = [chr(x) for x in range(32,123)]
 
 def google_search(data):
 	st="https://www.google.com/search?q="+"+".join(data)
@@ -37,7 +40,30 @@ def vedio(movie_name):
 	return False
 
 def clear():
-    os.system( 'cls' )
+    os.system('cls')
+
+#def get_key():
+#	global key
+#	key = getpass('Enter cipher key:')
+
+def decrypt(encrypted_text):
+	global cipher
+	global key
+	if not key: wiki.get_key()
+	text = ''
+	decrypte_key = key*(len(encrypted_text)//len(key)) + key[:len(encrypted_text)%len(key)]
+	for x,y in zip(encrypted_text[:-1],decrypte_key):
+		text += cipher[(91+cipher.index(x)-cipher.index(y))%91]
+	return text
+
+def file_search(name):
+	with open('D:\wiki\encrypted_details.txt','r+') as file:
+		while True:
+			line = decrypt(file.readline())
+			if name in line:
+				return line.split()[1:]
+		else:
+			print("Couldn't find the value")
 
 def web(name,platform='youtube'):
 	name = ' '.join(name)+" "+platform
@@ -46,12 +72,8 @@ def web(name,platform='youtube'):
 		if 'hashtag' not in x:
 			url = x
 			webbrowser.open_new(x)
-#			if platform =='youtube':
-#				time.sleep(3)
-#				pg.click(500,500)
 			break
 	return url
-
 
 def save(title,text,path='Desktop'):
 	loc = 'C:/Users/gurra/{}/{}.txt'.format(path,title)
@@ -75,29 +97,32 @@ def weather(city='nellore'):
 	return str(int(r['main']['temp'])-273),str(r['weather'][0]['description'])
 
 def facebook_log():
+	user,password = file_search('facebook')
 	driver = webdriver.Firefox(executable_path = firefox_driver)
 	driver.get('https://www.facebook.com/')
 	email = driver.find_element_by_id('email')
 	driver.execute_script("arguments[0].type = 'password';", email) 
-	email.send_keys('9640505949') 
-	driver.find_element_by_id('pass').send_keys('9010Amma') 
+	email.send_keys(user) 
+	driver.find_element_by_id('pass').send_keys(password) 
 	driver.find_element_by_id('u_0_b').click() 
 	print("Loged in Succesfully")
 
 def twitter_log():
+	user,password = file_search('twitter')
 	driver = webdriver.Firefox(executable_path = firefox_driver)
 	driver.get('https://twitter.com/login')
 	driver.implicitly_wait(5)
 	email = driver.find_element_by_name('session[username_or_email]')
 	driver.execute_script("arguments[0].type = 'password';", email) 
-	email.send_keys('9182864266')
-	driver.find_element_by_name('session[password]').send_keys('9010Amma')
+	email.send_keys(user)
+	driver.find_element_by_name('session[password]').send_keys(password)
 	driver.implicitly_wait(5)
 	driver.find_element_by_xpath("//span[contains(@class,'css-901oao css-16my406 css-bfa6kz r-1qd0xha r-ad9z0x r-bcqeeo r-qvutc0')]").click()
 
 def sendwhatmsg(phone_no, message):
-	webbrowser.open('https://web.whatsapp.com/send?phone='+phone_no+'&text='+message)
-	time.sleep(12)
+	print(message)
+	webbrowser.open("https://web.whatsapp.com/send?phone="+phone_no+"&text="+message)
+	time.sleep(8)
 	pg.press('enter')
 
 def search_contact(contact_name):
@@ -115,17 +140,17 @@ def download_youtube_vedio(vedio_url):
 	ydl_opts = {}
 	with youtube_dl.YoutubeDL(ydl_opts) as ydl:
 		ydl.download([vedio_url])
-	file_names = os.listdir('C:/Users/gurra/AppData/Local/Programs/Python/Python35/')
+	file_names = os.listdir('D:/wiki/')
 	for file in file_names:
 		if file[-3:] == 'mp4':
 			vedio_name = file
 			break
 	print("Moving vedio to vedio songs folder")
-	original = r"C:/Users/gurra/AppData/Local/Programs/Python/Python35/"+vedio_name
+	original = r'D:/wiki/'+vedio_name
 	target = r'F:/vedio songs/'+vedio_name
 	shutil.move(original,target)
 
-def get_insta_twit_links(name):
+"""def get_insta_twit_links(name):
 	name = name.replace(' ','+')
 	url = "https://www.google.com/search?q="+name
 	data = requests.get(url,headers={'User-Agent': 'Mozilla/76.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36'})
@@ -139,7 +164,16 @@ def get_insta_twit_links(name):
 
 		if ('twitter' in link) and twit and len(link)<60:
 			webbrowser.open(link)
-			twit = False
+			twit = False"""
+
+def get_speech(question):
+	url1 = 'https://api.wolframalpha.com/v1/spoken?appid=LUGHK6-YH5EHYEV83&i='+question+'%3f'
+	return requests.get(url1).text
+
+#def get_answer(question):
+#	url2 = 'http://api.wolframalpha.com/v1/result?appid=LUGHK6-YH5EHYEV83&i='+question+'%3f'
+#	r2 = requests.get(url2)
+#	print(r2.text)
 
 def get_wiki_link(name):
 	webbrowser.open(wikipedia.page(name).url)

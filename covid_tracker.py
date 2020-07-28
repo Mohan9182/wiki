@@ -33,6 +33,17 @@ layout1 = dict(
   yaxis4=dict(axis, **dict(domain=[0.0, 0.2], anchor='x4'))
 )
 
+district = pd.read_csv('https://api.covid19india.org/csv/latest/district_wise.csv',index_col='SlNo',skiprows=[1])
+state = pd.read_csv("https://api.covid19india.org/csv/latest/state_wise.csv",skiprows=[1])[['State','Confirmed','Recovered','Deaths','Active']]
+daily = pd.read_csv('https://api.covid19india.org/csv/latest/state_wise_daily.csv')
+district.drop(district.loc[district['State'] == 'State Unassigned'].index,inplace=True)
+for i,x in enumerate(district['District']):
+	if x == 'Unknown': district['District'].iloc[i] = district['State'].iloc[i]
+daily['Date'] = daily['Date'].apply(lambda x: pd.to_datetime(x))
+state_names={}
+for x in district['State'].unique():
+  state_names[x.lower()]=district['State_Code'].loc[district['State']==x].values[0]
+
 def display_data(sentence):
   global district
   global state
@@ -75,14 +86,3 @@ def display_data(sentence):
   fig1 = dict(data=[table_trace1, trace1, trace2, trace3, trace4], layout=layout1)
   py.plot(fig1)
 
-if __name__ == "__main__":
-  district = pd.read_csv('https://api.covid19india.org/csv/latest/district_wise.csv',index_col='SlNo',skiprows=[1])
-  state = pd.read_csv("https://api.covid19india.org/csv/latest/state_wise.csv",skiprows=[1])[['State','Confirmed','Recovered','Deaths','Active']]
-  daily = pd.read_csv('https://api.covid19india.org/csv/latest/state_wise_daily.csv')
-  district.drop(district.loc[district['State'] == 'State Unassigned'].index,inplace=True)
-  for i,x in enumerate(district['District']):
-	  if x == 'Unknown': district['District'].iloc[i] = district['State'].iloc[i]
-  daily['Date'] = daily['Date'].apply(lambda x: pd.to_datetime(x))
-  state_names={}
-  for x in district['State'].unique():
-    state_names[x.lower()]=district['State_Code'].loc[district['State']==x].values[0]

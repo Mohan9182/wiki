@@ -4,8 +4,9 @@ import time
 import functions as f
 import pyttsx3
 import random
-from multiprocessing import Process
+from multiprocessing import Process,Pipe
 import covid_tracker as covid
+from getpass import getpass
 
 r = sr.Recognizer()
 r.pause_threshold = 1
@@ -13,11 +14,15 @@ engine = pyttsx3.init()
 engine.setProperty('rate',150)
 engine.setProperty('volume',1.0)
 
+def get_key():
+	speech('Sir! PLease Enter the Cipher key to Decrypte the data')
+	f.key = getpass('Enter cipher key:')
+
 def response():
 	speech(random.choice(["No Problem Sir","Alright Sir","Will do Sir","Done Sir","Their you go Sir"]))
 
 def listen():
-	with sr.Microphone(device_index=2) as source:
+	with sr.Microphone(device_index=1) as source:
 		f.clear()
 		print("I'm Listening ......")
 		r.adjust_for_ambient_noise(source, duration=1)
@@ -64,20 +69,16 @@ if __name__ == "__main__":
 				else:
 					vedio_url = f.web(words[2:],'youtube')
 
-			elif 'who' in words:
-				name = ' '.join(words[3:])
-				p2 = Process(target=f.get_insta_twit_links ,args=(name,))
-				p1 = Process(target=f.get_wiki_link,args=(name,))
-				p1.start()
-				p2.start()
-				speech(wikipedia.summary(name,sentences=3))
-				speech("Here what i found")
+			elif 'who' in words or 'what' in words or "what's" in words or "who's" in words or 'convert' in words:
+				name = '+'.join(words[1:])
+				speech(f.get_speech(name))
+				#speech(wikipedia.summary(name,sentences=3))
 				continue
 
-			elif 'what' in words:
-				name = ' '.join(words[3:])
-				print(wikipedia.summary(name,sentences=3).encode("utf-8"))
-				time.sleep(20)
+			#elif 'what' in words:
+			#	name = ' '.join(words[3:])
+			#	print(wikipedia.summary(name,sentences=3).encode("utf-8"))
+			#	time.sleep(20)
 
 			elif 'search' in words:
 				f.google_search(words[3:])
@@ -100,9 +101,9 @@ if __name__ == "__main__":
 					speech("To whom Sir")
 					contact_name = listen()
 				print(contact_name)
+				number = f.file_search(contact_name)[0]
 				print("Whats the message:")
 				speech("Whats the message")
-				number = f.search_contact(contact_name)
 				if number == 0: continue
 				else: f.sendwhatmsg(number,listen())
 				speech("Message Sent")
