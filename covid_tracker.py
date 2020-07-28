@@ -20,7 +20,6 @@ axis=dict(
 
 layout1 = dict(
 	autosize=True,
-	title='Covid-19 Statistics',
 	margin = dict(t=100),
 	showlegend=True,
 	xaxis1=dict(axis, **dict(domain=[0.55, 1], anchor='y1',showticklabels=False)),
@@ -34,9 +33,10 @@ layout1 = dict(
 )
 
 district = pd.read_csv('https://api.covid19india.org/csv/latest/district_wise.csv',index_col='SlNo',skiprows=[1])
-state = pd.read_csv("https://api.covid19india.org/csv/latest/state_wise.csv",skiprows=[1])[['State','Confirmed','Recovered','Deaths','Active']]
+state = pd.read_csv("https://api.covid19india.org/csv/latest/state_wise.csv")[['State','Confirmed','Recovered','Deaths','Active']]
 daily = pd.read_csv('https://api.covid19india.org/csv/latest/state_wise_daily.csv')
 district.drop(district.loc[district['State'] == 'State Unassigned'].index,inplace=True)
+state.drop(state.loc[state['State'] == 'State Unassigned'].index,inplace=True)
 for i,x in enumerate(district['District']):
 	if x == 'Unknown': district['District'].iloc[i] = district['State'].iloc[i]
 daily['Date'] = daily['Date'].apply(lambda x: pd.to_datetime(x))
@@ -49,16 +49,18 @@ def display_data(sentence):
   global state
   global daily
   global state_names
+  global layout1
   date = daily['Date'].iloc[-1] - timedelta(days=30)
   dates = pd.date_range(start=date,end=daily['Date'].iloc[-1])
   col=''
-  if 'full' in sentence:
+  if 'full' in sentence or 'india' in sentence:
     col = 'TT'
   else:
     for x in state_names:
       if x in sentence:
         col = state_names[x]
-        print(col)
+        state_name = x.upper().title()
+        print(col,state_name)
         break
     else:
       print("Couldn't find state")
@@ -70,19 +72,28 @@ def display_data(sentence):
   active = confirmed - recovered - deaths
   print("Collected data")
   if col=='TT':
-    table_trace1 = pg.Table(header=dict(values=['States', 'Confirmed','Active','Deceased','Recovered']),
-                 cells=dict(values=[state['State'], state['Confirmed'],state['Active'], state['Deaths'], state['Recovered']]),domain=dict(x=[0, 0.5],y=[0, 1.0]))
+    print(list(state.iloc[0].values))
+    c,r,d,a = list(state.iloc[0].values)[1:]
+    #c,r,d,a = str(c),str(r),str(d),str(a)
+    state.drop(0,inplace=True)
+    table_trace1 = pg.Table(header=dict(values=['<b>States</b>', '<b>Confirmed</b>','<b>Active</b>','<b>Deceased</b>','<b>Recovered</b>']),
+                 cells=dict(values=[state['State'], state['Confirmed'],state['Active'], state['Deaths'], state['Recovered']]),domain=dict(x=[0, 0.5],y=[0, 0.9+0.05]))
   else:
+    print(state.loc[state['State']==state_name].values.tolist()[0])
+    c,r,d,a = state.loc[state['State']==state_name].values.tolist()[0][1:]
+    #c,r,d,a = str(c),str(r),str(d),str(a)
     district_values = district[['District','Confirmed','Active','Recovered','Deceased']].loc[district['State_Code']==col]
     district_values = district_values.sort_values(by=['Confirmed'],ascending=False)
     district_values = district_values[:-1]
-    table_trace1 = pg.Table(header=dict(values=['Districts', 'Confirmed','Active','Deceased','Recovered']),
-                 cells=dict(values=[district_values['District'], district_values['Confirmed'],district_values['Active'], district_values['Deceased'], district_values['Recovered']]),domain=dict(x=[0, 0.5],y=[0, 1.0]))
+    table_trace1 = pg.Table(header=dict(values=['<b>Districts</b>', '<b>Confirmed</b>','<b>Active</b>','<b>Deceased</b>','<b>Recovered</b>']),
+                 cells=dict(values=[district_values['District'], district_values['Confirmed'],district_values['Active'], district_values['Deceased'], district_values['Recovered']]),domain=dict(x=[0, 0.5],y=[0, 0.9+0.05]))
   trace1 = pg.Scatter(x=dates,y=confirmed,name='Confirmed',marker={'color':'#FD073A'},xaxis='x1',yaxis='y1',text=confirmed,texttemplate='%{text:.2s}',fillcolor='#F7819F',fill='tozeroy')
   trace2 = pg.Scatter(x=dates,y=active,name='Active',marker={'color':'#0080FF'},xaxis='x2',yaxis='y2',text=active,texttemplate='%{text:.2s}',fillcolor='#819FF7',fill='tozeroy')
   trace3 = pg.Scatter(x=dates,y=recovered,name='Recovered',marker={'color':'#3ADF00'},xaxis='x3',yaxis='y3',text=recovered,texttemplate='%{text:.2s}',fillcolor='#9FF781',fill='tozeroy')
   trace4 = pg.Scatter(x=dates,y=deaths,name='Deceased',xaxis='x4',yaxis='y4',text=deaths,texttemplate='%{text:.2s}',marker={'color':'#FF8000'},fillcolor='#F7BE81',fill='tozeroy')
   print("Data visualization complete")
+  layout1['title']='<b><i>Covid-19 Statistics</i></b><br><br><b>Confirmed :</b> %d   <b>Active :</b> %d    <b>Deaths :</b> %d    <b>Recovered :</b> %d'%(c,a,d,r)
   fig1 = dict(data=[table_trace1, trace1, trace2, trace3, trace4], layout=layout1)
   py.plot(fig1)
 
+display_data('maharashtra')

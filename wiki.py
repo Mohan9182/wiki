@@ -48,26 +48,18 @@ if __name__ == "__main__":
 			words = text.split()
 			if 'open' in words:
 				word = words[1]
-				if 'text' in words:
-					f.application('text')
-				elif 'twitter' in words:
-					f.web(words[2:-2],'twitter')
-				elif 'instagram' in words:
-					f.web(words[2:-2],'instagram')
+				if 'text' in words: f.application('text')
+				elif 'twitter' in words: f.web(words[2:-2],'twitter')
+				elif 'instagram' in words: f.web(words[2:-2],'instagram')
 				#else:
 				#	f.site(''.join(words[2:]))
-				else:
-					f.web(words[words.index(word)+1:],'')
+				else: f.web(words[words.index(word)+1:],'')
 			elif 'login' in words:
-				if 'facebook' in words:
-					f.facebook_log()
-				elif 'twitter' in words:
-					f.twitter_log()
+				if 'facebook' in words: f.facebook_log()
+				elif 'twitter' in words: f.twitter_log()
 			elif 'play' in words:
-				if f.vedio(words[2:]):
-					continue
-				else:
-					vedio_url = f.web(words[2:],'youtube')
+				if f.vedio(words[2:]): continue
+				else: vedio_url = f.web(words[2:],'youtube')
 
 			elif 'who' in words or 'what' in words or "what's" in words or "who's" in words or 'convert' in words:
 				name = '+'.join(words[1:])
@@ -80,23 +72,19 @@ if __name__ == "__main__":
 			#	print(wikipedia.summary(name,sentences=3).encode("utf-8"))
 			#	time.sleep(20)
 
-			elif 'search' in words:
-				f.google_search(words[3:])
+			elif 'search' in words: f.google_search(words[3:])
 
 			elif 'weather' in words or 'temperature' in words:
-				if 'in' in words:
-					temp,desc = f.weather(" ".join(words[words.index('in')+1:]))
-				elif 'at' in words:
-					temp,desc = f.weather(" ".join(words[words.index('at')+1:]))
-				else:
-					temp,desc = f.weather()
+				if 'in' in words: pos =  words.index('in')+1
+				elif 'at' in words: pos = words.index('at')+1
+				else: pos = len(words)
+				temp,desc = f.weather(" ".join(words[pos:])) 
 				print("Temperature : {} C\nDescription : {}".format(temp,desc))
 				speech("Current Temperature is {} degree celsius and is appears to be {} Sir!".format(temp,desc))
 				continue
 
 			elif 'message' in words:
-				if 'to' in words:
-					contact_name = "_".join(words[words.index('to')+1:])
+				if 'to' in words: contact_name = "_".join(words[words.index('to')+1:])
 				else:
 					speech("To whom Sir")
 					contact_name = listen()
@@ -109,14 +97,11 @@ if __name__ == "__main__":
 				speech("Message Sent")
 				continue
 
-			elif 'download' in words:
-				f.download_youtube_vedio(vedio_url)
+			elif 'download' in words: f.download_youtube_vedio(vedio_url)
 			
-			elif 'covid-19' in words or 'covid' in words:
-				covid.display_data(" ".join(words))
+			elif 'covid-19' in words or 'covid' in words: covid.display_data(" ".join(words))
 			
-			elif 'rest' in text or 'sleep' in text:
-				break
+			elif 'rest' in text or 'sleep' in text: break
 			response()
 		else:
 			continue
