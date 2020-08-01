@@ -7,6 +7,7 @@ import random
 from multiprocessing import Process,Pipe
 import covid_tracker as covid
 from getpass import getpass
+from hashlib import md5
 
 r = sr.Recognizer()
 r.pause_threshold = 1
@@ -16,7 +17,11 @@ engine.setProperty('volume',1.0)
 
 def get_key():
 	speech('Sir! PLease Enter the Cipher key to Decrypte the data')
+	md5_key='f492f2943f78ac1ea62d3b37a6cb1a7e'
 	f.key = getpass('Enter cipher key:')
+	while md5(f.key.encode()).hexdigest()!=md5_key:
+		speech("Sir! the cipher key doesn't match please try again")
+		f.key = getpass('Enter cipher key:')
 
 def response():
 	speech(random.choice(["No Problem Sir","Alright Sir","Will do Sir","Done Sir","Their you go Sir"]))
