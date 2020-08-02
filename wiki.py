@@ -17,11 +17,12 @@ engine.setProperty('volume',1.0)
 
 def get_key():
 	speech('Sir! PLease Enter the Cipher key to Decrypte the data')
-	md5_key='f492f2943f78ac1ea62d3b37a6cb1a7e'
+	md5_key='3599d0ea360d7651bdd96b6a2c2e2890'
 	f.key = getpass('Enter cipher key:')
-	while md5(f.key.encode()).hexdigest()!=md5_key:
+	while md5(md5(f.key.encode()).hexdigest().encode()).hexdigest()!=md5_key:
 		speech("Sir! the cipher key doesn't match please try again")
 		f.key = getpass('Enter cipher key:')
+	else: speech('Cipher key Accepted sir')
 
 def response():
 	speech(random.choice(["No Problem Sir","Alright Sir","Will do Sir","Done Sir","Their you go Sir"]))
@@ -60,17 +61,12 @@ if __name__ == "__main__":
 				#	f.site(''.join(words[2:]))
 				else: f.web(words[words.index(word)+1:],'')
 			elif 'login' in words:
+				speech('Please wait while log in sir')
 				if 'facebook' in words: f.facebook_log()
 				elif 'twitter' in words: f.twitter_log()
 			elif 'play' in words:
 				if f.vedio(words[2:]): continue
 				else: vedio_url = f.web(words[2:],'youtube')
-
-			elif 'who' in words or 'what' in words or "what's" in words or "who's" in words or 'convert' in words:
-				name = '+'.join(words[1:])
-				speech(f.get_speech(name))
-				#speech(wikipedia.summary(name,sentences=3))
-				continue
 
 			#elif 'what' in words:
 			#	name = ' '.join(words[3:])
@@ -104,9 +100,17 @@ if __name__ == "__main__":
 
 			elif 'download' in words: f.download_youtube_vedio(vedio_url)
 			
-			elif 'covid-19' in words or 'covid' in words: covid.display_data(" ".join(words))
+			elif 'covid-19' in words or 'covid' in words or 'reports' in words: covid.display_data(" ".join(words))
 			
 			elif 'rest' in text or 'sleep' in text: break
+
+			else:
+				name = '+'.join(words[1:])
+				answer = f.get_speech(name)
+				print(answer)
+				speech(answer)
+				#speech(wikipedia.summary(name,sentences=3))
+				continue
 			response()
 		else:
 			continue

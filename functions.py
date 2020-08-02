@@ -122,7 +122,7 @@ def twitter_log():
 def sendwhatmsg(phone_no, message):
 	print(message)
 	webbrowser.open("https://web.whatsapp.com/send?phone="+phone_no+"&text="+message)
-	time.sleep(8)
+	time.sleep(15)
 	pg.press('enter')
 
 def search_contact(contact_name):

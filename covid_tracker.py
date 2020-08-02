@@ -143,4 +143,3 @@ def display_data(sentence):
       print("Couldn't find state")
       return 0
       
-display_data('Maharashtra')
