@@ -7,6 +7,12 @@ import plotly.express as px
 import plotly.offline as py
 from datetime import timedelta
 import time
+import speech_recognition as sr
+import os
+from datetime import datetime
+
+r = sr.Recognizer()
+r.pause_threshold = 1
 
 axis=dict(
     showline=False,
@@ -56,7 +62,23 @@ state_names={}
 for x in district['State'].unique():
   state_names[x.lower()]=district['State_Code'].loc[district['State']==x].values[0]
 
+def listen():
+  with sr.Microphone() as source:
+    os.system('clear')
+    print("I'm Listening ......")
+    r.adjust_for_ambient_noise(source, duration=1)
+    audio = r.listen(source)
+    try:
+      print('Recognizing>')
+      data = r.recognize_google(audio).lower()
+      print(data)
+    except:
+      print("I don't Understand!")
+      data = listen()
+    return data
+
 def display_district_data(col,state_name):
+  last_updated = daily['Date'].iloc[-1].strftime("%d/%m/%Y")
   date = daily['Date'].iloc[-1] - timedelta(days=30)
   dates = pd.date_range(start=date,end=daily['Date'].iloc[-1])
   confirmed = daily[col].loc[(daily['Date']>=date) & (daily['Status']=='Confirmed')].reset_index(drop=True)
@@ -76,11 +98,12 @@ def display_district_data(col,state_name):
   trace3 = pg.Scatter(x=dates,y=recovered,name='Recovered',marker={'color':'#3ADF00'},xaxis='x3',yaxis='y3',text=recovered,texttemplate='%{text:.2s}',fillcolor='#9FF781',fill='tozeroy')
   trace4 = pg.Scatter(x=dates,y=deaths,name='Deceased',xaxis='x4',yaxis='y4',text=deaths,texttemplate='%{text:.2s}',marker={'color':'#FD073A'},fillcolor='#F7819F',fill='tozeroy')
   print("Data visualization complete")
-  layout1['title']='<b><i>Covid-19 Statistics</i></b><br><br><b>Confirmed:</b>%d   <b>Active:</b>%d     <b>Recovered:</b>%d   <b>Deaths:</b>%d'%(c,a,r,d)
+  layout1['title']='<b><i>Covid-19 Statistics</i></b>    Last updated:%s<br><br><b>Confirmed:</b>%d   <b>Active:</b>%d     <b>Recovered:</b>%d   <b>Deaths:</b>%d'%(last_updated,c,a,r,d)
   fig1 = dict(data=[table_trace, trace1, trace2, trace3, trace4], layout=layout1)
   py.plot(fig1)
 
 def display_state_data(col):
+  last_updated = daily['Date'].iloc[-1].strftime("%d/%m/%Y")
   date = daily['Date'].iloc[-1] - timedelta(days=30)
   dates = pd.date_range(start=date,end=daily['Date'].iloc[-1])
   confirmed = daily[col].loc[(daily['Date']>=date) & (daily['Status']=='Confirmed')].reset_index(drop=True)
@@ -98,20 +121,21 @@ def display_state_data(col):
   trace3 = pg.Scatter(x=dates,y=recovered,name='Recovered',marker={'color':'#3ADF00'},xaxis='x3',yaxis='y3',text=recovered,texttemplate='%{text:.2s}',fillcolor='#9FF781',fill='tozeroy')
   trace4 = pg.Scatter(x=dates,y=deaths,name='Deceased',xaxis='x4',yaxis='y4',text=deaths,texttemplate='%{text:.2s}',marker={'color':'#FD073A'},fillcolor='#F7819F',fill='tozeroy')
   print("Data visualization complete")
-  layout1['title']='<b><i>Covid-19 Statistics</i></b><br><br><b>Confirmed:</b>%d   <b>Active:</b>%d     <b>Recovered:</b>%d   <b>Deaths:</b>%d'%(c,a,r,d)
+  layout1['title']='<b><i>Covid-19 Statistics</i></b>   Last updated:%s<br><br><b>Confirmed:</b>%d   <b>Active:</b>%d     <b>Recovered:</b>%d   <b>Deaths:</b>%d'%(last_updated,c,a,r,d)
   fig1 = dict(data=[table_trace, trace1, trace2, trace3, trace4], layout=layout1)
   py.plot(fig1)
 
 def display_world_data():
-  print(world)
-  date = daily['Date'].iloc[-1] - timedelta(days=30)
+  last_updated = world['Date_reported'].iloc[-1].strftime("%d/%m/%Y")
+  date = world['Date_reported'].iloc[-1] - timedelta(days=30)
   dates = pd.date_range(start=date,end=daily['Date'].iloc[-1])
   confirmed,deaths = [],[]
   for x in dates:
     value = world[[' New_cases',' New_deaths']].loc[world['Date_reported']==x]
     confirmed.append(sum(value[' New_cases']))
     deaths.append(sum(value[' New_deaths']))
-  c,d = sum(confirmed),sum(deaths)
+  c = sum(world[' Cumulative_cases'].loc[world['Date_reported']==world['Date_reported'].iloc[-1]].values)
+  d = sum(world[' Cumulative_deaths'].loc[world['Date_reported']==world['Date_reported'].iloc[-1]].values)
   a = c-d
   current = world[[' Country',' Cumulative_cases',' Cumulative_deaths']].loc[world['Date_reported']==world['Date_reported'].iloc[-1]]
   current = current.sort_values(by=[' Cumulative_cases'],ascending=False)
@@ -120,26 +144,43 @@ def display_world_data():
   trace1 = pg.Scatter(x=dates,y=confirmed,name='Confirmed',marker={'color':'#FF8000'},xaxis='x1',yaxis='y1',text=confirmed,texttemplate='%{text:.2s}',fillcolor='#F7BE81',fill='tozeroy')
   trace2 = pg.Scatter(x=dates,y=deaths,name='Deceased',xaxis='x2',yaxis='y2',text=deaths,texttemplate='%{text:.2s}',marker={'color':'#FD073A'},fillcolor='#F7819F',fill='tozeroy')
   print("Data visualization complete")
-  layout2['title']='<b><i>Covid-19 Statistics</i></b><br><br><b>Confirmed:</b>%d   <b>Active/Recovered:</b>%d   <b>Deaths:</b>%d'%(c,a,d)
+  layout2['title']='<b><i>Covid-19 Statistics</i></b>   Last updated:%s<br><br><b>Confirmed:</b>%d   <b>Active/Recovered:</b>%d   <b>Deaths:</b>%d'%(last_updated,c,a,d)
   fig1 = dict(data=[table_trace, trace1, trace2], layout=layout2)
   py.plot(fig1)
   
 
-def display_data(sentence):
-  sentence = sentence.lower()
+"""def display_data(data):
+  data = data.lower()
   col=''
-  if 'world' in sentence:
+  if 'world' in data:
     display_world_data()
-  elif 'full' in sentence or 'india' in sentence:
+  elif 'full' in data or 'india' in data:
     display_state_data('TT')
   else:
     for x in state_names:
-      if x in sentence:
+      if x in data:
         col = state_names[x]
         state_name = x.upper().title()
         display_district_data(col,state_name)
         break
     else:
       print("Couldn't find state")
-      return 0
+      return 0"""
+
+if __name__ == "__main__":
+    while True:
+      data = listen()
+      if 'goodbye' in data: break
+      elif 'world' in data: display_world_data()
+      elif 'full' in data or 'india' in data: display_state_data('TT')
+      else:
+        for x in state_names:
+          if x in data:
+            col = state_names[x]
+            state_name = x.upper().title()
+            display_district_data(col,state_name)
+            break
+        else:
+          print("Couldn't find state")
+      time.sleep(2)
       

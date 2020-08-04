@@ -6,3 +6,4 @@ temp-plot.html
 .google-cookie
 geckodriver.log
 encrypted_details.txt
+.vscode/settings.json
