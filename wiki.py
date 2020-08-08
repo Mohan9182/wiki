@@ -28,7 +28,7 @@ def response():
 	speech(random.choice(["No Problem Sir","Alright Sir","Will do Sir","Done Sir","Their you go Sir"]))
 
 def listen():
-	with sr.Microphone(device_index=1) as source:
+	with sr.Microphone() as source:
 		f.clear()
 		print("I'm Listening ......")
 		r.adjust_for_ambient_noise(source, duration=1)

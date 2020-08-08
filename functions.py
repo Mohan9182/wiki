@@ -40,7 +40,8 @@ def vedio(movie_name):
 	return False
 
 def clear():
-    os.system('cls')
+#    os.system('clear')
+	pass
 
 #def get_key():
 #	global key
@@ -57,7 +58,7 @@ def decrypt(encrypted_text):
 	return text
 
 def file_search(name):
-	with open('D:\wiki\encrypted_details.txt','r+') as file:
+	with open('/run/media/mohan/Study and Softwares/work/wiki/encrypted_details.txt','r+') as file:
 		while True:
 			line = decrypt(file.readline())
 			if name in line:
@@ -85,9 +86,9 @@ def save(title,text,path='Desktop'):
 #	url = 'https://www.%s.com'%website
 #	webbrowser.open_new(url)
 
-def application(name):
-	if name == 'text':
-		os.startfile('C:/Program Files/Sublime Text 3/sublime_text.exe')
+#def application(name):
+#	if name == 'text':
+#		os.startfile('C:/Program Files/Sublime Text 3/sublime_text.exe')
 
 def weather(city='nellore'):
 	city=city.title()
