@@ -12,35 +12,39 @@ from bs4 import BeautifulSoup
 import requests
 import wikipedia
 import wiki
+import pyautogui as pg
 
-firefox_driver = "C:/Users/gurra/OneDrive/Documents/Drivers/geckodriver"
+chrome_driver = "C:/Users/gurra/OneDrive/Documents/Drivers/chromedriver"
 key = ''
 cipher = [chr(x) for x in range(32,123)]
+#webbrowser.register('mozilla', None, webbrowser.BackgroundBrowser('/media/mohan/Study and Softwares/firefox/firefox'))
 
 def google_search(data):
 	st="https://www.google.com/search?q="+"+".join(data)
 	webbrowser.open_new(st)
 
 def vedio(movie_name):
-	movies = os.listdir('F:/movies')
-	vedio_songs = os.listdir('F:/vedio songs')
-	name=' '.join(movie_name)
-	for x in movies:
-		if name in x.lower():
-			print(x)
-			subprocess.Popen(['C:/Program Files/KMPlayer 64X/KMPlayer64.exe','F:/movies/'+x])
-			time.sleep(10)
-			return True
-	for x in vedio_songs:
-		if name in x.lower():
-			print(x)
-			subprocess.Popen(['C:/Program Files/KMPlayer 64X/KMPlayer64.exe','F:/vedio songs/'+x])
-			time.sleep(10)
-			return True
-	return False
+	try:
+		movies = os.listdir('F:/movies')
+		vedio_songs = os.listdir('F:/vedio songs')
+		name=' '.join(movie_name)
+		for x in movies:
+			if name in x.lower():
+				print(x)
+				subprocess.Popen(['C:/Program Files/KMPlayer 64X/KMPlayer64.exe','F:/movies/'+x])
+				time.sleep(10)
+				return True
+		for x in vedio_songs:
+			if name in x.lower().replace(' - ',' '):
+				print(x)
+				subprocess.Popen(['C:/Program Files/KMPlayer 64X/KMPlayer64.exe','F:/vedio songs/'+x])
+				time.sleep(10)
+				return True
+	except:
+		return False
 
 def clear():
-#    os.system('clear')
+	os.system('cls')
 	pass
 
 #def get_key():
@@ -58,7 +62,7 @@ def decrypt(encrypted_text):
 	return text
 
 def file_search(name):
-	with open('/run/media/mohan/Study and Softwares/work/wiki/encrypted_details.txt','r+') as file:
+	with open('G:\projects\wiki\encrypted_details.txt','r+') as file:
 		while True:
 			line = decrypt(file.readline())
 			if name in line:
@@ -68,11 +72,14 @@ def file_search(name):
 
 def web(name,platform='youtube'):
 	name = ' '.join(name)+" "+platform
+	url = ''
 	search_results = search(name)
 	for x in search_results:
 		if 'hashtag' not in x:
 			url = x
-			webbrowser.open_new(x)
+			print(url)
+			webbrowser.open_new_tab(x)
+			pg.click(400,400)
 			break
 	return url
 
@@ -97,9 +104,16 @@ def weather(city='nellore'):
 	print("City : "+r['name'])
 	return str(int(r['main']['temp'])-273),str(r['weather'][0]['description'])
 
+def get_news(query):
+	if query:
+		query=" ".join(query)
+		print(query)
+		return requests.get(f'https://newsapi.org/v2/top-headlines?q={query}&country=in&pageSize=5&apiKey=902ed5da698b4d2b98bcf1de3385e454').json()['articles']
+	else: return requests.get(f'https://newsapi.org/v2/top-headlines?country=in&pageSize=5&apiKey=902ed5da698b4d2b98bcf1de3385e454').json()['articles']
+
 def facebook_log():
 	user,password = file_search('facebook')
-	driver = webdriver.Firefox(executable_path = firefox_driver)
+	driver = webdriver.Chrome(executable_path = chrome_driver)
 	driver.get('https://www.facebook.com/')
 	email = driver.find_element_by_id('email')
 	driver.execute_script("arguments[0].type = 'password';", email) 
@@ -110,7 +124,7 @@ def facebook_log():
 
 def twitter_log():
 	user,password = file_search('twitter')
-	driver = webdriver.Firefox(executable_path = firefox_driver)
+	driver = webdriver.Chrome(executable_path = chrome_driver)
 	driver.get('https://twitter.com/login')
 	driver.implicitly_wait(5)
 	email = driver.find_element_by_name('session[username_or_email]')
@@ -138,18 +152,18 @@ def search_contact(contact_name):
 	return contact_details[-1]
 
 def download_youtube_vedio(vedio_url):
-	ydl_opts = {}
-	with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-		ydl.download([vedio_url])
-	file_names = os.listdir('D:/wiki/')
+	link = f"youtube-dl.exe -f bestvideo+bestaudio {vedio_url}"
+	os.system(link)
+	time.sleep(2)
+	file_names = os.listdir('G:/projects/wiki/')
 	for file in file_names:
 		if file[-3:] == 'mp4':
 			vedio_name = file
+			print("Moving vedio to vedio songs folder")
+			original = r'G:/projects/wiki/'+vedio_name
+			target = r'F:/vedio songs/'+vedio_name
+			shutil.move(original,target)
 			break
-	print("Moving vedio to vedio songs folder")
-	original = r'D:/wiki/'+vedio_name
-	target = r'F:/vedio songs/'+vedio_name
-	shutil.move(original,target)
 
 """def get_insta_twit_links(name):
 	name = name.replace(' ','+')

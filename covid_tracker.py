@@ -7,12 +7,12 @@ import plotly.express as px
 import plotly.offline as py
 from datetime import timedelta
 import time
-import speech_recognition as sr
+#import speech_recognition as sr
 import os
 from datetime import datetime
 
-r = sr.Recognizer()
-r.pause_threshold = 1
+#r = sr.Recognizer()
+#r.pause_threshold = 1
 
 axis=dict(
     showline=False,
@@ -62,7 +62,7 @@ state_names={}
 for x in district['State'].unique():
   state_names[x.lower()]=district['State_Code'].loc[district['State']==x].values[0]
 
-def listen():
+"""def listen():
   with sr.Microphone() as source:
     os.system('cls')
     print("I'm Listening ......")
@@ -75,7 +75,7 @@ def listen():
     except:
       print("I don't Understand!")
       data = listen()
-    return data
+    return data"""
 
 def display_district_data(col,state_name):
   last_updated = daily['Date'].iloc[-1].strftime("%d/%m/%Y")
@@ -149,25 +149,33 @@ def display_world_data():
   py.plot(fig1)
   
 
-"""def display_data(data):
+def display_data(data):
   data = data.lower()
   col=''
+  state_name=''
   if 'world' in data:
     display_world_data()
   elif 'full' in data or 'india' in data:
     display_state_data('TT')
   else:
-    for x in state_names:
-      if x in data:
-        col = state_names[x]
-        state_name = x.upper().title()
-        display_district_data(col,state_name)
-        break
+    if 'tamilnadu' in data:
+      state_name = 'Tamil Nadu'
+      col = state_names['tamil nadu']
+    if 'jammu and kashmir' in data:
+      col = state_names['jammu and kashmir']
+      state_name = 'Jammu and Kashmir'
     else:
-      print("Couldn't find state")
-      return 0"""
+      for x in state_names:
+        if x in data:
+          col = state_names[x]
+          state_name = x.upper().title()
+          break
+      else: print("Couldn't find state")
+    if col and state_name:
+      display_district_data(col,state_name)
+    return 0
 
-if __name__ == "__main__":
+"""if __name__ == "__main__":
     while True:
       data = listen()
       if 'goodbye' in data or 'good bye' in data: break
@@ -182,5 +190,5 @@ if __name__ == "__main__":
             break
         else:
           print("Couldn't find state")
-      time.sleep(2)
+      time.sleep(2)"""
       

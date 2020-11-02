@@ -7,7 +7,8 @@ import random
 from multiprocessing import Process,Pipe
 import covid_tracker as covid
 from getpass import getpass
-from hashlib import md5
+from hashlib import md5, new
+from time import sleep
 
 r = sr.Recognizer()
 r.pause_threshold = 1
@@ -20,7 +21,7 @@ def get_key():
 	md5_key='3599d0ea360d7651bdd96b6a2c2e2890'
 	f.key = getpass('Enter cipher key:')
 	while md5(md5(f.key.encode()).hexdigest().encode()).hexdigest()!=md5_key:
-		speech("Sir! the cipher key doesn't match please try again")
+		speech("Sir the cipher key doesn't match please try again")
 		f.key = getpass('Enter cipher key:')
 	else: speech('Cipher key Accepted sir')
 
@@ -31,7 +32,7 @@ def listen():
 	with sr.Microphone() as source:
 		f.clear()
 		print("I'm Listening ......")
-		r.adjust_for_ambient_noise(source, duration=1)
+		r.adjust_for_ambient_noise(source, duration=2)
 		audio = r.listen(source)
 		try:
 			print('Recognizing>')
@@ -48,69 +49,74 @@ def speech(data):
 
 
 if __name__ == "__main__":
+	vedio_url=''
 	while True:
 		text = listen()
-		if 'wiki' in text or 'vicky' in text:
-			words = text.split()
-			if 'open' in words:
-				word = words[1]
-				if 'text' in words: f.application('text')
-				elif 'twitter' in words: f.web(words[2:-2],'twitter')
-				elif 'instagram' in words: f.web(words[2:-2],'instagram')
-				#else:
-				#	f.site(''.join(words[2:]))
-				else: f.web(words[words.index(word)+1:],'')
-			elif 'login' in words:
-				speech('Please wait while log in sir')
-				if 'facebook' in words: f.facebook_log()
-				elif 'twitter' in words: f.twitter_log()
-			elif 'play' in words:
-				if f.vedio(words[2:]): continue
-				else: vedio_url = f.web(words[2:],'youtube')
+		if len(text)<=1: continue
+		words = text.split()
+		if 'open' in words:
+			if 'twitter' in words: f.web(words[1:-2],'twitter')
+			elif 'instagram' in words: f.web(words[1:-2],'instagram')
+			elif 'covid' in text: covid.display_data(text)
+			else: f.web(words[1:],'')
 
-			#elif 'what' in words:
-			#	name = ' '.join(words[3:])
-			#	print(wikipedia.summary(name,sentences=3).encode("utf-8"))
-			#	time.sleep(20)
+		elif 'login' in words:
+			speech('Please wait while log in sir')
+			if 'facebook' in words: f.facebook_log()
+			elif 'twitter' in words: f.twitter_log()
+		
+		elif 'play' in words:
+			if f.vedio(words[1:]): continue
+			else: vedio_url = f.web(words[1:],'youtube')
 
-			elif 'search' in words: f.google_search(words[3:])
+		elif 'search' in words: f.google_search(words[3:])
 
-			elif 'weather' in words or 'temperature' in words:
-				if 'in' in words: pos =  words.index('in')+1
-				elif 'at' in words: pos = words.index('at')+1
-				else: pos = len(words)
-				temp,desc = f.weather(" ".join(words[pos:])) 
-				print("Temperature : {} C\nDescription : {}".format(temp,desc))
-				speech("Current Temperature is {} degree celsius and is appears to be {} Sir!".format(temp,desc))
-				continue
-
-			elif 'message' in words:
-				if 'to' in words: contact_name = "_".join(words[words.index('to')+1:])
-				else:
-					speech("To whom Sir")
-					contact_name = listen()
-				print(contact_name)
-				number = f.file_search(contact_name)[0]
-				print("Whats the message:")
-				speech("Whats the message")
-				if number == 0: continue
-				else: f.sendwhatmsg(number,listen())
-				speech("Message Sent")
-				continue
-
-			elif 'download' in words: f.download_youtube_vedio(vedio_url)
-			
-			elif 'covid-19' in words or 'covid' in words or 'reports' in words: covid.display_data(" ".join(words))
-			
-			elif 'rest' in text or 'sleep' in text: break
-
-			else:
-				name = '+'.join(words[1:])
-				answer = f.get_speech(name)
-				print(answer)
-				speech(answer)
-				#speech(wikipedia.summary(name,sentences=3))
-				continue
-			response()
-		else:
+		elif 'weather' in words or 'temperature' in words:
+			if 'in' in words: pos =  words.index('in')+1
+			elif 'at' in words: pos = words.index('at')+1
+			else: pos = len(words)
+			temp,desc = f.weather(" ".join(words[pos:])) 
+			print("Temperature : {} C\nDescription : {}".format(temp,desc))
+			speech("Current Temperature is {} degree celsius and is appears to be {} Sir!".format(temp,desc))
 			continue
+
+		elif 'message' in words:
+			if 'to' in words: contact_name = "_".join(words[words.index('to')+1:])
+			else:
+				speech("To whom Sir")
+				contact_name = listen()
+			print(contact_name)
+			number = f.file_search(contact_name)[0]
+			print("Whats the message:")
+			speech("Whats the message")
+			if number == 0: continue
+			else: f.sendwhatmsg(number,listen())
+			speech("Message Sent")
+			continue
+
+		elif 'download' in words: f.download_youtube_vedio(vedio_url)
+
+		elif 'news' in words:
+			if 'on' in words: news_list = f.get_news(words[words.index('on')+1:])
+			else: news_list = f.get_news('')
+			if not news_list:
+				print("Not much at this time Sir")
+				speech("Not much at this time Sir")
+				continue
+			for news in news_list:
+				print(news['title'].replace(' - ',' by '))
+				speech(news['title'].replace(' - ',' by '))
+						
+		elif 'rest' in text or 'sleep' in text:
+			speech("good buy sir")
+			break
+
+		else:
+			name = '+'.join(words[1:])
+			answer = f.get_speech(name)
+			print(answer)
+			speech(answer)
+			continue
+		response()
+		#else:
+		#	continue
